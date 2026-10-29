@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Monograma dourado S e A">
+<defs><linearGradient id="gold" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff3b4"/><stop offset=".25" stop-color="#f1c45c"/><stop offset=".55" stop-color="#a96a11"/><stop offset=".82" stop-color="#ffe28c"/><stop offset="1" stop-color="#c08a2b"/></linearGradient><filter id="shadow"><feDropShadow dx="2" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".7"/></filter></defs>
+<rect width="512" height="512" rx="92" fill="#080808"/>
+<g fill="url(#gold)" stroke="#dcae50" stroke-width="2" filter="url(#shadow)">
+<path d="M105 408 252 89q7-15 15 0l145 319h-72l-30-70H203l-31 70Zm126-131h54l-27-67Z"/>
+<path d="M392 169c-36-39-83-62-139-62-70 0-118 37-118 76 0 32 29 42 89 58 67 18 129 45 129 108 0 62-60 103-146 103-68 0-119-25-154-69l47-41c27 32 64 49 112 49 43 0 71-13 71-38 0-26-36-39-89-54-72-20-128-44-128-110 0-80 78-140 181-140 75 0 140 30 190 85Z"/>
+</g></svg>
