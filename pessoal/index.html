@@ -35,6 +35,20 @@ const months=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Ago
 for(let i=0;i<12;i++){const op=document.createElement("option");op.value=i;op.textContent=months[i];el("monthSelect").appendChild(op)}
 function read(){try{const v=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(v)?v:[]}catch{return []}}
 let entries=read();
+// Contas pessoais escolhidas para novembro de 2026. Importadas uma única vez por navegador.
+const IMPORT_KEY="minhas-despesas-importacao-novembro-2026-v1";
+const INITIAL_NOVEMBER=[{"id":"nov26-cassia","name":"Cássia","amount":330,"category":"fixa","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-gatonet","name":"GatoNet","amount":60,"category":"fixa","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-cel-samantha","name":"Celular Samantha","amount":93.27,"category":"fixa","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-cartao-samantha","name":"Cartão Samantha","amount":419.16,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-luz","name":"Luz","amount":358.15,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-mercado-pago","name":"Mercado Pago","amount":550,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-supermercado","name":"Supermercado","amount":0,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-emprestimo-nubank","name":"Empréstimo Nubank (10/10)","amount":220,"category":"parcelada","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-cesar-samantha","name":"Cartão Cesar / Samantha (2/4)","amount":90,"category":"parcelada","month":"2026-11","recurring":false,"paidMonths":{}}];
+try{
+  if(localStorage.getItem(IMPORT_KEY)!=="ok"){
+    for(const item of INITIAL_NOVEMBER){
+      const already=entries.some(e=>e.id===item.id||(e.month===item.month&&e.category===item.category&&e.name===item.name));
+      if(!already)entries.push(item);
+    }
+    localStorage.setItem(KEY,JSON.stringify(entries));
+    localStorage.setItem(IMPORT_KEY,"ok");
+  }
+}catch(e){console.warn("Não foi possível concluir a importação local",e)}
+
 function save(){try{localStorage.setItem(KEY,JSON.stringify(entries))}catch{alert("Não foi possível salvar neste navegador. Verifique o espaço e as configurações de privacidade.")}}
 function current(){return year+"-"+String(month+1).padStart(2,"0")}
 function money(n){return Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
