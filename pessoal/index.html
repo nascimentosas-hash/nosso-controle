@@ -50,7 +50,7 @@ dialog{color-scheme:light}.danger{background:#fff;color:#b32222;border-color:#df
  .toolbar .primary{width:100%}.entry{flex-wrap:wrap}.entry .amount{margin-left:auto}
  .month #period{font-size:15px}.panel{padding:14px}
 }
-</style></head><body>
+#installFields{display:grid;grid-template-columns:1fr 1fr;gap:10px}#installFields[hidden],#repeatRow[hidden]{display:none!important}#installFields label{min-width:0}#installFields input{width:100%}</style></head><body>
 <div class="wrap">
 <header><div class="logo" aria-label="Logo com cifrão">$</div><div><h1>Minhas<br>Despesas</h1><small>Meu controle financeiro pessoal</small></div><span class="save-status" aria-label="Dados salvos neste aparelho">✓ Salvo no aparelho</span></header>
 <section class="stats" aria-label="Resumo financeiro"><div class="stat"><small>Total de despesas</small><strong id="total">R$ 0,00</strong></div><div class="stat pago"><small>Total pago</small><strong id="paid">R$ 0,00</strong></div><div class="stat resta"><small>Resta pagar</small><strong id="remaining">R$ 0,00</strong></div></section>
@@ -62,7 +62,7 @@ dialog{color-scheme:light}.danger{background:#fff;color:#b32222;border-color:#df
 <div class="actions"><button id="backup">Baixar backup</button><button id="restore">Importar backup</button><input hidden type="file" id="file" accept=".json,application/json"></div>
 <p class="note">Seus dados ficam salvos neste navegador e neste aparelho, sem login. Não são compartilhados com o Nosso Controle da família. Para não perder informações, faça backups periodicamente. Ao limpar os dados do Safari, os lançamentos locais poderão ser apagados.</p>
 </div>
-<dialog id="editor"><form id="form"><h2 id="formTitle">Nova despesa</h2><label class="field">Nome da conta<input id="name" required maxlength="100" placeholder="Ex.: Celular, cartão, transporte"></label><label class="field">Valor (R$)<input id="value" required inputmode="decimal" placeholder="Ex.: 150,00"></label><label class="field">Categoria<select id="category"><option value="fixa">Fixa</option><option value="variavel">Variável</option><option value="parcelada">Parcelada</option></select></label><label class="checklabel"><input type="checkbox" id="recurring"> Repetir nos próximos meses</label><div class="formactions"><button type="button" id="cancel">Cancelar</button><button class="primary" type="submit">Salvar</button></div><button type="button" id="delete" class="danger" style="width:100%;margin-top:10px" hidden>Excluir despesa</button></form></dialog>
+<dialog id="editor"><form id="form"><h2 id="formTitle">Nova despesa</h2><label class="field">Nome da conta<input id="name" required maxlength="100" placeholder="Ex.: Celular, cartão, transporte"></label><label class="field">Valor (R$)<input id="value" required inputmode="decimal" placeholder="Ex.: 150,00"></label><label class="field">Categoria<select id="category"><option value="fixa">Fixa</option><option value="variavel">Variável</option><option value="parcelada">Parcelada</option></select></label><label class="checklabel" id="repeatRow"><input type="checkbox" id="recurring" checked> Repetir nos próximos meses</label><div id="installFields" hidden><label class="field">Parcela deste mês<input id="installCurrent" type="number" min="1" max="360" value="1"></label><label class="field">Total de parcelas<input id="installTotal" type="number" min="1" max="360" value="1"></label></div><div class="formactions"><button type="button" id="cancel">Cancelar</button><button class="primary" type="submit">Salvar</button></div><button type="button" id="delete" class="danger" style="width:100%;margin-top:10px" hidden>Excluir despesa</button></form></dialog>
 <dialog id="monthDialog"><form id="monthForm"><h2>Escolher mês</h2><label class="field">Mês<select id="monthSelect"></select></label><label class="field">Ano<input id="yearSelect" type="number" min="2020" max="2100" required></label><div class="formactions"><button type="button" id="monthCancel">Cancelar</button><button class="primary" type="submit">Ir para mês</button></div></form></dialog>
 <script>
 (()=>{
@@ -88,11 +88,35 @@ try{
   }
 }catch(e){console.warn("Não foi possível concluir a importação local",e)}
 
+// Uma única migração dos nove lançamentos de novembro de 2026, sem apagar pagamentos existentes.
+const INSTALL_MIGRATION_KEY="minhas-despesas-recorrencia-2026-11-v1";
+try{
+ if(localStorage.getItem(INSTALL_MIGRATION_KEY)!=="ok"){
+  const seedInstall={"nov26-emprestimo-nubank":[10,10],"nov26-cesar-samantha":[2,4]};
+  const selectedIds=new Set(["nov26-cassia","nov26-gatonet","nov26-cel-samantha","nov26-cartao-samantha","nov26-luz","nov26-mercado-pago","nov26-supermercado"]);
+  for(const e of entries){
+   if(e.month!=="2026-11")continue;
+   if(selectedIds.has(e.id))e.recurring=true;
+   if(seedInstall[e.id]){e.installCurrent=seedInstall[e.id][0];e.installTotal=seedInstall[e.id][1];e.recurring=false}
+  }
+  localStorage.setItem(KEY,JSON.stringify(entries));
+  localStorage.setItem(INSTALL_MIGRATION_KEY,"ok");
+ }
+}catch(err){console.warn("Falha ao atualizar recorrência",err)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(entries))}catch{alert("Não foi possível salvar neste navegador. Verifique o espaço e as configurações de privacidade.")}}
 function current(){return year+"-"+String(month+1).padStart(2,"0")}
 function money(n){return Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
 function parseMoney(v){const x=String(v).replace(/[^0-9,.-]/g,"");return Number(x.includes(",")?x.replace(/\./g,"").replace(",","."):x)}
-function active(e){return e.month===current()||(e.recurring&&e.month<current())}
+function monthNumber(k){const p=k.split("-").map(Number);return p[0]*12+p[1]-1}
+function active(e){
+ const distance=monthNumber(current())-monthNumber(e.month);
+ if(distance<0)return false;
+ if(e.category==="parcelada"){
+  const first=Math.max(1,Number(e.installCurrent)||1),total=Math.max(first,Number(e.installTotal)||first);
+  return first+distance<=total;
+ }
+ return distance===0||!!e.recurring;
+}
 function paid(e){return !!(e.paidMonths&&e.paidMonths[current()])}
 function text(tag,content,klass){const node=document.createElement(tag);node.textContent=content;if(klass)node.className=klass;return node}
 function render(){
@@ -105,7 +129,8 @@ if(!list.length){box.append(text("div","Nenhuma despesa nesta categoria.","empty
 for(const e of list){
 const row=document.createElement("div");row.className="entry"+(paid(e)?" paid":"");
 const check=document.createElement("input");check.type="checkbox";check.checked=paid(e);check.setAttribute("aria-label","Marcar "+e.name+" como paga");check.addEventListener("change",()=>{e.paidMonths??={};e.paidMonths[current()]=check.checked;save();render()});
-const info=document.createElement("div");info.className="info";info.append(text("b",e.name));if(e.recurring)info.append(text("small","Repete mensalmente"));
+const info=document.createElement("div");info.className="info";info.append(text("b",e.name));if(e.category==="parcelada"){const position=(Number(e.installCurrent)||1)+monthNumber(current())-monthNumber(e.month);info.append(text("small","Parcela "+position+"/"+(Number(e.installTotal)||1))}
+else if(e.recurring)info.append(text("small","Repete mensalmente"));
 const value=text("span",money(e.amount),"amount");
 const edit=document.createElement("button");edit.textContent="Editar";edit.addEventListener("click",()=>openEdit(e.id));
 row.append(check,info,value,edit);box.appendChild(row)
@@ -114,17 +139,22 @@ row.append(check,info,value,edit);box.appendChild(row)
 function openEdit(id){
 editing=id||null;const e=entries.find(e=>e.id===id);
 el("formTitle").textContent=e?"Editar despesa":"Nova despesa";
-el("name").value=e?.name||"";el("value").value=e?e.amount.toFixed(2).replace(".",","):"";el("category").value=e?.category||"fixa";el("recurring").checked=!!e?.recurring;
+el("name").value=e?.name||"";el("value").value=e?e.amount.toFixed(2).replace(".",","):"";el("category").value=e?.category||"fixa";el("recurring").checked=e?!!e.recurring:true;el("installCurrent").value=e?.installCurrent||1;el("installTotal").value=e?.installTotal||1;syncInstallFields();
 el("delete").hidden=!e;el("editor").showModal();el("name").focus()
 }
+function syncInstallFields(){const installment=el("category").value==="parcelada";el("installFields").hidden=!installment;el("repeatRow").hidden=installment;el("installCurrent").required=installment;el("installTotal").required=installment}
+el("category").addEventListener("change",syncInstallFields);
 el("add").onclick=()=>openEdit(null);
 el("cancel").onclick=()=>el("editor").close();
 el("form").onsubmit=ev=>{
 ev.preventDefault();const amount=parseMoney(el("value").value);if(!Number.isFinite(amount)||amount<=0){alert("Digite um valor válido maior que zero.");return}
 const name=el("name").value.trim();if(!name)return;
+const installment=el("category").value==="parcelada";
+const first=Number(el("installCurrent").value),totalInstall=Number(el("installTotal").value);
+if(installment&&(!Number.isInteger(first)||!Number.isInteger(totalInstall)||first<1||totalInstall<first||totalInstall>360)){alert("Confira o número da parcela e o total de parcelas.");return}
 let e=entries.find(x=>x.id===editing);
-if(e){e.name=name;e.amount=amount;e.category=el("category").value;e.recurring=el("recurring").checked}
-else{entries.push({id:(crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2)),name,amount,category:el("category").value,month:current(),recurring:el("recurring").checked,paidMonths:{}})}
+if(e){e.name=name;e.amount=amount;e.category=el("category").value;e.recurring=!installment&&el("recurring").checked;e.installCurrent=installment?first:undefined;e.installTotal=installment?totalInstall:undefined}
+else{entries.push({id:(crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2)),name,amount,category:el("category").value,month:current(),recurring:!installment&&el("recurring").checked,installCurrent:installment?first:undefined,installTotal:installment?totalInstall:undefined,paidMonths:{}})}
 save();el("editor").close();render()
 };
 el("delete").onclick=()=>{if(!editing)return;if(!confirm("Excluir esta despesa de todos os meses em que aparece?"))return;entries=entries.filter(e=>e.id!==editing);save();el("editor").close();render()};
