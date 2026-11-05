@@ -59,7 +59,7 @@ dialog{color-scheme:light}.danger{background:#fff;color:#b32222;border-color:#df
 <section class="panel"><h2>📌 Despesas fixas</h2><div id="fixa"></div></section>
 <section class="panel"><h2>🔄 Despesas variáveis</h2><div id="variavel"></div></section>
 <section class="panel"><h2>🧾 Despesas parceladas</h2><div id="parcelada"></div></section>
-<div class="actions"><button id="backup">Baixar backup</button><button id="restore">Importar backup</button><input hidden type="file" id="file" accept=".json,application/json"></div>
+<div class="actions"><button id="backup">Baixar backup</button><button id="restore">Importar backup</button><button id="recoverNovember">Recuperar contas de novembro</button><input hidden type="file" id="file" accept=".json,application/json"></div>
 <p class="note">Seus dados ficam salvos neste navegador e neste aparelho, sem login. Não são compartilhados com o Nosso Controle da família. Para não perder informações, faça backups periodicamente. Ao limpar os dados do Safari, os lançamentos locais poderão ser apagados.</p>
 </div>
 <dialog id="editor"><form id="form"><h2 id="formTitle">Nova despesa</h2><label class="field">Nome da conta<input id="name" required maxlength="100" placeholder="Ex.: Celular, cartão, transporte"></label><label class="field">Valor (R$)<input id="value" required inputmode="decimal" placeholder="Ex.: 150,00"></label><label class="field">Categoria<select id="category"><option value="fixa">Fixa</option><option value="variavel">Variável</option><option value="parcelada">Parcelada</option></select></label><label class="checklabel" id="repeatRow"><input type="checkbox" id="recurring" checked> Repetir nos próximos meses</label><div id="installFields" hidden><label class="field">Parcela no primeiro mês cadastrado<input id="installCurrent" type="number" min="1" max="360" value="1"></label><label class="field">Total de parcelas<input id="installTotal" type="number" min="1" max="360" value="1"></label></div><div class="formactions"><button type="button" id="cancel">Cancelar</button><button class="primary" type="submit">Salvar</button></div><button type="button" id="delete" class="danger" style="width:100%;margin-top:10px" hidden>Excluir despesa</button></form></dialog>
@@ -164,6 +164,23 @@ el("next").onclick=()=>{month++;if(month>11){month=0;year++}render()};
 el("period").onclick=()=>{el("monthSelect").value=month;el("yearSelect").value=year;el("monthDialog").showModal()};
 el("monthCancel").onclick=()=>el("monthDialog").close();
 el("monthForm").onsubmit=ev=>{ev.preventDefault();year=Number(el("yearSelect").value);month=Number(el("monthSelect").value);el("monthDialog").close();render()};
+el("recoverNovember").onclick=()=>{
+ if(!confirm("Recuperar as 9 contas escolhidas para novembro de 2026? As contas e pagamentos já existentes serão preservados."))return;
+ let inserted=0;
+ for(const source of INITIAL_NOVEMBER){
+   const exists=entries.some(e=>e.id===source.id||(e.month==="2026-11"&&e.category===source.category&&e.name===source.name));
+   if(exists)continue;
+   const item={...source,paidMonths:{}};
+   if(item.category==="parcelada"){
+     if(item.id==="nov26-emprestimo-nubank"){item.installCurrent=10;item.installTotal=10}
+     if(item.id==="nov26-cesar-samantha"){item.installCurrent=2;item.installTotal=4}
+   }else{item.recurring=true}
+   entries.push(item);inserted++;
+ }
+ try{localStorage.setItem(KEY,JSON.stringify(entries))}catch(err){alert("O navegador não permitiu salvar os dados. Verifique o armazenamento do Safari.");return}
+ year=2026;month=10;render();
+ alert(inserted?inserted+" conta(s) recuperada(s). Novembro de 2026 está aberto.":"As contas de novembro já estão salvas neste navegador. Abri novembro de 2026 para você.");
+};
 el("backup").onclick=()=>{const blob=new Blob([JSON.stringify({app:"minhas-despesas",version:1,entries,exportedAt:new Date().toISOString()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="minhas-despesas-backup-"+current()+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 el("restore").onclick=()=>el("file").click();
 el("file").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const obj=JSON.parse(await file.text());if(obj.app!=="minhas-despesas"||!Array.isArray(obj.entries))throw Error();if(!confirm("Substituir todas as despesas pessoais deste aparelho pelo conteúdo do backup?"))return;entries=obj.entries.filter(x=>x&&typeof x.name==="string"&&Number.isFinite(x.amount)&&x.amount>0&&["fixa","variavel","parcelada"].includes(x.category)&&typeof x.month==="string").map(x=>({...x,paidMonths:x.paidMonths||{}}));save();render();alert("Backup importado.")}catch{alert("Arquivo de backup inválido.")}finally{e.target.value=""}};
