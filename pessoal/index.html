@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#101012">
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#004a2a">
 <title>Minhas Despesas</title>
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;background:#101012;color:#f7f3e8}
@@ -11,9 +11,48 @@ header{display:flex;align-items:center;gap:13px;margin:5px 0 22px}.logo{display:
 .panel{background:white;color:#171717;border-radius:15px;padding:16px;margin:13px 0;box-shadow:0 7px 20px #0002}.panel h2{font-size:17px;margin:0 0 12px}.entry{border-top:1px solid #ececec;display:flex;gap:9px;align-items:center;padding:12px 0}.entry:first-child{border-top:0}.entry .info{flex:1;min-width:0}.entry .info b{display:block;overflow-wrap:anywhere}.entry small{display:block;color:#656565;font-size:12px;margin-top:2px}.entry .amount{font-weight:800;white-space:nowrap}.entry.paid .amount{color:#187348}.entry:not(.paid) .amount{color:#b22d2d}.entry button{min-height:35px;color:#333;background:#f6f6f6;border-color:#ddd;padding:6px 9px;font-size:13px}.entry input[type=checkbox]{width:21px;height:21px;accent-color:#238657;cursor:pointer;flex:none}.empty{padding:16px;color:#666;background:#f8f8f8;border-radius:10px;font-size:14px}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.actions button{font-size:13px}.note{color:#aaa394;font-size:13px;line-height:1.5;margin:18px 0}dialog{border:0;border-radius:16px;padding:0;width:min(440px,calc(100% - 26px));background:#fff;color:#151515;box-shadow:0 20px 70px #000a}dialog::backdrop{background:#000a}form{padding:22px}form h2{margin:0 0 17px;font-size:23px}label.field{display:block;font-weight:700;font-size:13px;margin:12px 0}label.field input,label.field select{display:block;width:100%;margin-top:6px;border:1px solid #b7b7b7;background:#fff;color:#111;border-radius:9px;padding:12px;font-size:16px}.checklabel{display:flex;gap:8px;align-items:center;margin:14px 0;font-size:14px}.checklabel input{width:20px;height:20px}.formactions{display:flex;justify-content:space-between;gap:10px;margin-top:16px}.formactions button{flex:1}.danger{background:#fff;color:#a22323;border:1px solid #e0b3b3}.muted{color:#888}
 @media(max-width:650px){.stats{grid-template-columns:1fr;gap:8px}.stat{min-height:72px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}.stat strong{margin:0;font-size:23px;text-align:right}.entry{flex-wrap:wrap}.entry .amount{margin-left:auto}.entry button{font-size:12px}.toolbar{align-items:stretch}.toolbar .primary{width:100%}}
+
+/* Visual verde inspirado na referência aprovada: exclusivo do Minhas Despesas. */
+:root{color-scheme:light;background:#004526;color:#fff}
+body{color:#fff;min-height:100vh;background:
+ radial-gradient(ellipse 70% 35% at 110% 9%,#0da34e90 0%,transparent 75%),
+ radial-gradient(ellipse 60% 36% at -10% 62%,#128d4980 0%,transparent 75%),
+ linear-gradient(145deg,#00391f 0%,#006039 42%,#003a25 100%);background-attachment:fixed}
+.wrap{max-width:950px;padding:23px 14px 62px}
+header{padding:7px 1px 1px;gap:13px;margin-bottom:20px}
+header h1{font-weight:850;letter-spacing:-.5px;font-size:28px;line-height:.98}
+header small{color:#b9e8c9;font-size:12px}
+.logo{width:63px;height:63px;flex-shrink:0;border:1px solid #5dee94;background:linear-gradient(145deg,#11ba56 0%,#008c3e 55%,#005c30 100%);color:white;font:800 44px/1 system-ui,-apple-system,sans-serif;border-radius:15px;box-shadow:inset 0 1px 0 #baffcf77,0 8px 23px #001e1199}
+.save-status{margin-left:auto;align-self:flex-start;border:1px solid #36c36d;border-radius:11px;color:#c4ffdc;background:#003e2bd9;padding:9px 10px;font-size:12px;font-weight:750;white-space:nowrap}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{min-height:88px;border-radius:14px;border:1px solid #ddf0e1;background:#fff;box-shadow:0 8px 19px #00190940;display:block;padding:14px 16px}
+.stat:nth-child(3){grid-column:1/-1;background:linear-gradient(115deg,#fff,#ffeff0);border-color:#ffcacc}
+.stat small{font-size:12px;color:#394e43}.stat strong{font-weight:850;color:#005f2f;font-size:clamp(22px,3vw,28px);margin:5px 0 0;text-align:left}.stat.pago strong{color:#007c37}.stat.resta strong{color:#c01f29}
+.month{gap:14px;margin:17px auto 19px;justify-content:space-between}
+.month button{background:linear-gradient(145deg,#08aa47,#00652d);border:1px solid #0ab856;color:#fff;min-width:46px;min-height:45px;border-radius:12px;font-size:25px;box-shadow:0 5px 12px #00271770}
+.month #period{background:#fff;color:#143327;min-width:0;flex:1;max-width:310px;border-color:#ecf8ed;box-shadow:0 6px 15px #002b1955;font-size:16px}
+.toolbar{align-items:center;gap:10px}.toolbar p{color:#dcf6e5;font-size:13px}
+button{border:1px solid #b7dfc2;border-radius:10px;color:#005b2c;background:#e9f9ed;min-height:40px}
+.primary{background:linear-gradient(160deg,#0bbc55,#007337)!important;color:#fff!important;border-color:#008d45!important;box-shadow:0 5px 12px #00552a42}
+.panel{border-radius:15px;border:1px solid #d4efdc;padding:16px;margin:13px 0;box-shadow:0 7px 20px #001a116e;color:#101f18;background:#fff}
+.panel h2{font-size:17px;color:#0c2316}
+.entry{border-color:#e3ede5}.entry button{background:#e4f5e8;color:#005a2d;border-color:#cbead2;font-weight:700}
+.entry.paid .amount{color:#00853d}.entry:not(.paid) .amount{color:#c92323}
+.entry input[type=checkbox]{accent-color:#00a64a}.empty{background:#eff8f0;color:#476553}
+.actions{margin:19px 0 0}.actions button{font-weight:650;background:#fff;color:#006936}
+.note{color:#d0f0da;font-size:12px}
+dialog{color-scheme:light}.danger{background:#fff;color:#b32222;border-color:#dfb4b4}
+@media(max-width:650px){
+ .wrap{padding:14px 12px 48px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{min-height:75px;padding:12px 11px;display:block}.stat strong{font-size:clamp(17px,5vw,24px);margin-top:6px;text-align:left}
+ .stat:nth-child(3){grid-column:1/-1;min-height:73px}
+ .save-status{font-size:10px;padding:7px 7px}.logo{width:56px;height:56px;font-size:38px}header h1{font-size:23px}
+ .toolbar .primary{width:100%}.entry{flex-wrap:wrap}.entry .amount{margin-left:auto}
+ .month #period{font-size:15px}.panel{padding:14px}
+}
 </style></head><body>
 <div class="wrap">
-<header><div class="logo">MD</div><div><h1>Minhas Despesas</h1><small>Meu controle financeiro pessoal</small></div></header>
+<header><div class="logo" aria-label="Logo com cifrão">$</div><div><h1>Minhas<br>Despesas</h1><small>Meu controle financeiro pessoal</small></div><span class="save-status" aria-label="Dados salvos neste aparelho">✓ Salvo no aparelho</span></header>
 <section class="stats" aria-label="Resumo financeiro"><div class="stat"><small>Total de despesas</small><strong id="total">R$ 0,00</strong></div><div class="stat pago"><small>Total pago</small><strong id="paid">R$ 0,00</strong></div><div class="stat resta"><small>Resta pagar</small><strong id="remaining">R$ 0,00</strong></div></section>
 <nav class="month" aria-label="Navegar pelos meses"><button id="prev" aria-label="Mês anterior">‹</button><button id="period" aria-label="Escolher mês">Mês</button><button id="next" aria-label="Próximo mês">›</button></nav>
 <div class="toolbar"><p>Seus lançamentos, separados do controle da família.</p><button class="primary" id="add">+ Adicionar despesa</button></div>
