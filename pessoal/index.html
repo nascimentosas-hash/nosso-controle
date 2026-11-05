@@ -123,7 +123,7 @@ if(!list.length){box.append(text("div","Nenhuma despesa nesta categoria.","empty
 for(const e of list){
 const row=document.createElement("div");row.className="entry"+(paid(e)?" paid":"");
 const check=document.createElement("input");check.type="checkbox";check.checked=paid(e);check.setAttribute("aria-label","Marcar "+e.name+" como paga");check.addEventListener("change",()=>{e.paidMonths??={};e.paidMonths[current()]=check.checked;save();render()});
-const info=document.createElement("div");info.className="info";info.append(text("b",e.category==="parcelada"?e.name.replace(/\s*\(\d+\s*\/\s*\d+\)\s*$/,""):e.name));if(e.category==="parcelada"){const position=(Number(e.installCurrent)||1)+monthNumber(current())-monthNumber(e.month);info.append(text("small","Parcela "+position+"/"+(Number(e.installTotal)||1))}
+const info=document.createElement("div");info.className="info";info.append(text("b",e.category==="parcelada"?e.name.replace(/\s*\(\d+\s*\/\s*\d+\)\s*$/,""):e.name));if(e.category==="parcelada"){const position=(Number(e.installCurrent)||1)+monthNumber(current())-monthNumber(e.month);info.append(text("small","Parcela "+position+"/"+(Number(e.installTotal)||1)))}
 else if(e.recurring)info.append(text("small","Repete mensalmente"));
 const value=text("span",money(e.amount),"amount");
 const edit=document.createElement("button");edit.textContent="Editar";edit.addEventListener("click",()=>openEdit(e.id));
