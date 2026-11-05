@@ -59,7 +59,7 @@ dialog{color-scheme:light}.danger{background:#fff;color:#b32222;border-color:#df
 <section class="panel"><h2>📌 Despesas fixas</h2><div id="fixa"></div></section>
 <section class="panel"><h2>🔄 Despesas variáveis</h2><div id="variavel"></div></section>
 <section class="panel"><h2>🧾 Despesas parceladas</h2><div id="parcelada"></div></section>
-<div class="actions"><button id="backup">Baixar backup</button><button id="restore">Importar backup</button><button id="recoverNovember">Recuperar contas de novembro</button><input hidden type="file" id="file" accept=".json,application/json"></div>
+<div class="actions"><button id="backup">Baixar backup</button><button id="restore">Importar backup</button><button id="recoverNovember">Restaurar lista de novembro</button><input hidden type="file" id="file" accept=".json,application/json"></div>
 <p class="note">Seus dados ficam salvos neste navegador e neste aparelho, sem login. Não são compartilhados com o Nosso Controle da família. Para não perder informações, faça backups periodicamente. Ao limpar os dados do Safari, os lançamentos locais poderão ser apagados.</p>
 </div>
 <dialog id="editor"><form id="form"><h2 id="formTitle">Nova despesa</h2><label class="field">Nome da conta<input id="name" required maxlength="100" placeholder="Ex.: Celular, cartão, transporte"></label><label class="field">Valor (R$)<input id="value" required inputmode="decimal" placeholder="Ex.: 150,00"></label><label class="field">Categoria<select id="category"><option value="fixa">Fixa</option><option value="variavel">Variável</option><option value="parcelada">Parcelada</option></select></label><label class="checklabel" id="repeatRow"><input type="checkbox" id="recurring" checked> Repetir nos próximos meses</label><div id="installFields" hidden><label class="field">Parcela no primeiro mês cadastrado<input id="installCurrent" type="number" min="1" max="360" value="1"></label><label class="field">Total de parcelas<input id="installTotal" type="number" min="1" max="360" value="1"></label></div><div class="formactions"><button type="button" id="cancel">Cancelar</button><button class="primary" type="submit">Salvar</button></div><button type="button" id="delete" class="danger" style="width:100%;margin-top:10px" hidden>Excluir despesa</button></form></dialog>
@@ -74,35 +74,29 @@ const months=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Ago
 for(let i=0;i<12;i++){const op=document.createElement("option");op.value=i;op.textContent=months[i];el("monthSelect").appendChild(op)}
 function read(){try{const v=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(v)?v:[]}catch{return []}}
 let entries=read();
-// Contas pessoais escolhidas para novembro de 2026. Importadas uma única vez por navegador.
-const IMPORT_KEY="minhas-despesas-importacao-novembro-2026-v1";
-const INITIAL_NOVEMBER=[{"id":"nov26-cassia","name":"Cássia","amount":330,"category":"fixa","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-gatonet","name":"GatoNet","amount":60,"category":"fixa","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-cel-samantha","name":"Celular Samantha","amount":93.27,"category":"fixa","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-cartao-samantha","name":"Cartão Samantha","amount":419.16,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-luz","name":"Luz","amount":358.15,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-mercado-pago","name":"Mercado Pago","amount":550,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-supermercado","name":"Supermercado","amount":0,"category":"variavel","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-emprestimo-nubank","name":"Empréstimo Nubank (10/10)","amount":220,"category":"parcelada","month":"2026-11","recurring":false,"paidMonths":{}},{"id":"nov26-cesar-samantha","name":"Cartão Cesar / Samantha (2/4)","amount":90,"category":"parcelada","month":"2026-11","recurring":false,"paidMonths":{}}];
+// Lista confirmada pelo usuário para novembro de 2026 — independente do Nosso Controle da família.
+const INITIAL_NOVEMBER=[{"id":"nov26-cassia","name":"Cássia","amount":330,"category":"fixa","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-gatonet","name":"GatoNet","amount":60,"category":"fixa","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-cel-samantha","name":"Celular Samantha","amount":100,"category":"fixa","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-cartao-gabriel","name":"Cartão Gabriel","amount":419.16,"category":"variavel","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-luz","name":"Luz","amount":358.15,"category":"variavel","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-mercado-pago","name":"Mercado Pago","amount":550,"category":"variavel","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-supermercado","name":"Supermercado","amount":600,"category":"variavel","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-cartao-nubank","name":"Cartão Nubank","amount":50,"category":"variavel","month":"2026-11","recurring":true,"paidMonths":{}},{"id":"nov26-emprestimo-nubank","name":"Empréstimo nubank","amount":220,"category":"parcelada","month":"2026-11","recurring":false,"installCurrent":10,"installTotal":10,"paidMonths":{}},{"id":"nov26-cartao-cesar","name":"Cartão César","amount":90,"category":"parcelada","month":"2026-11","recurring":false,"installCurrent":2,"installTotal":4,"paidMonths":{}}];
+const NOVEMBER_VERSION="minhas-despesas-lista-novembro-2026-confirmada-v2";
+const LEGACY_IDS=["nov26-cassia","nov26-gatonet","nov26-cel-samantha","nov26-cartao-samantha","nov26-luz","nov26-mercado-pago","nov26-supermercado","nov26-emprestimo-nubank","nov26-cesar-samantha"];
+const PREVIOUS_ALIASES={"nov26-cartao-gabriel":"nov26-cartao-samantha","nov26-cartao-cesar":"nov26-cesar-samantha"};
+function applyNovemberList(){
+ const previous=entries;
+ const others=previous.filter(e=>!(e&&e.month==="2026-11"));
+ const november=INITIAL_NOVEMBER.map(item=>{
+   const source=previous.find(e=>e&&e.id===item.id)||previous.find(e=>e&&e.id===PREVIOUS_ALIASES[item.id])||previous.find(e=>e&&e.month==="2026-11"&&e.category===item.category&&e.name===item.name);
+   return {...item,paidMonths:source&&source.paidMonths&&typeof source.paidMonths==="object"?{...source.paidMonths}:{}};
+ });
+ entries=[...others,...november];
+ localStorage.setItem(KEY,JSON.stringify(entries));
+}
 try{
-  if(localStorage.getItem(IMPORT_KEY)!=="ok"){
-    for(const item of INITIAL_NOVEMBER){
-      const already=entries.some(e=>e.id===item.id||(e.month===item.month&&e.category===item.category&&e.name===item.name));
-      if(!already)entries.push(item);
-    }
-    localStorage.setItem(KEY,JSON.stringify(entries));
-    localStorage.setItem(IMPORT_KEY,"ok");
-  }
-}catch(e){console.warn("Não foi possível concluir a importação local",e)}
-
-// Uma única migração dos nove lançamentos de novembro de 2026, sem apagar pagamentos existentes.
-const INSTALL_MIGRATION_KEY="minhas-despesas-recorrencia-2026-11-v1";
-try{
- if(localStorage.getItem(INSTALL_MIGRATION_KEY)!=="ok"){
-  const seedInstall={"nov26-emprestimo-nubank":[10,10],"nov26-cesar-samantha":[2,4]};
-  const selectedIds=new Set(["nov26-cassia","nov26-gatonet","nov26-cel-samantha","nov26-cartao-samantha","nov26-luz","nov26-mercado-pago","nov26-supermercado"]);
-  for(const e of entries){
-   if(e.month!=="2026-11")continue;
-   if(selectedIds.has(e.id))e.recurring=true;
-   if(seedInstall[e.id]){e.installCurrent=seedInstall[e.id][0];e.installTotal=seedInstall[e.id][1];e.recurring=false}
-  }
-  localStorage.setItem(KEY,JSON.stringify(entries));
-  localStorage.setItem(INSTALL_MIGRATION_KEY,"ok");
+ if(localStorage.getItem(NOVEMBER_VERSION)!=="ok"){
+   const old=localStorage.getItem(KEY);
+   if(old!==null)localStorage.setItem("minhas-despesas-backup-antes-novembro-v2",old);
+   applyNovemberList();
+   localStorage.setItem(NOVEMBER_VERSION,"ok");
  }
-}catch(err){console.warn("Falha ao atualizar recorrência",err)}
+}catch(err){console.warn("Falha ao atualizar novembro; dados anteriores mantidos se possível",err)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(entries))}catch{alert("Não foi possível salvar neste navegador. Verifique o espaço e as configurações de privacidade.")}}
 function current(){return year+"-"+String(month+1).padStart(2,"0")}
 function money(n){return Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
@@ -165,21 +159,13 @@ el("period").onclick=()=>{el("monthSelect").value=month;el("yearSelect").value=y
 el("monthCancel").onclick=()=>el("monthDialog").close();
 el("monthForm").onsubmit=ev=>{ev.preventDefault();year=Number(el("yearSelect").value);month=Number(el("monthSelect").value);el("monthDialog").close();render()};
 el("recoverNovember").onclick=()=>{
- if(!confirm("Recuperar as 9 contas escolhidas para novembro de 2026? As contas e pagamentos já existentes serão preservados."))return;
- let inserted=0;
- for(const source of INITIAL_NOVEMBER){
-   const exists=entries.some(e=>e.id===source.id||(e.month==="2026-11"&&e.category===source.category&&e.name===source.name));
-   if(exists)continue;
-   const item={...source,paidMonths:{}};
-   if(item.category==="parcelada"){
-     if(item.id==="nov26-emprestimo-nubank"){item.installCurrent=10;item.installTotal=10}
-     if(item.id==="nov26-cesar-samantha"){item.installCurrent=2;item.installTotal=4}
-   }else{item.recurring=true}
-   entries.push(item);inserted++;
- }
- try{localStorage.setItem(KEY,JSON.stringify(entries))}catch(err){alert("O navegador não permitiu salvar os dados. Verifique o armazenamento do Safari.");return}
- year=2026;month=10;render();
- alert(inserted?inserted+" conta(s) recuperada(s). Novembro de 2026 está aberto.":"As contas de novembro já estão salvas neste navegador. Abri novembro de 2026 para você.");
+ if(!confirm("Restaurar a lista confirmada com 10 contas de novembro de 2026? Os valores de novembro serão atualizados. As demais datas e pagamentos já marcados serão preservados."))return;
+ try{
+   const old=localStorage.getItem(KEY);
+   if(old!==null)localStorage.setItem("minhas-despesas-backup-antes-restauracao",old);
+   applyNovemberList();
+   year=2026;month=10;render();alert("As 10 contas de novembro foram restauradas.");
+ }catch(err){alert("Não foi possível salvar. Confira o armazenamento do navegador.")}
 };
 el("backup").onclick=()=>{const blob=new Blob([JSON.stringify({app:"minhas-despesas",version:1,entries,exportedAt:new Date().toISOString()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="minhas-despesas-backup-"+current()+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 el("restore").onclick=()=>el("file").click();
